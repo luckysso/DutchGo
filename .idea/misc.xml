@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DesignSurface">
+    <option name="filePathToZoomLevelMap">
+      <map>
+        <entry key="..\:/Users/SSO/AndroidStudioProjects/DutchGo/app/src/main/res/drawable/border_line.xml" value="0.1421875" />
+        <entry key="..\:/Users/SSO/AndroidStudioProjects/DutchGo/app/src/main/res/drawable/border_rect_btn.xml" value="0.34010416666666665" />
+        <entry key="..\:/Users/SSO/AndroidStudioProjects/DutchGo/app/src/main/res/drawable/border_round_btn.xml" value="0.22592592592592592" />
+        <entry key="..\:/Users/SSO/AndroidStudioProjects/DutchGo/app/src/main/res/drawable/ic_camera.xml" value="0.22592592592592592" />
+        <entry key="..\:/Users/SSO/AndroidStudioProjects/DutchGo/app/src/main/res/drawable/ic_launcher_background.xml" value="0.22592592592592592" />
+        <entry key="..\:/Users/SSO/AndroidStudioProjects/DutchGo/app/src/main/res/drawable/ic_minus.xml" value="0.34010416666666665" />
+        <entry key="..\:/Users/SSO/AndroidStudioProjects/DutchGo/app/src/main/res/drawable/ic_plus.xml" value="0.34010416666666665" />
+        <entry key="..\:/Users/SSO/AndroidStudioProjects/DutchGo/app/src/main/res/layout/activity_basic_cal.xml" value="0.3640625" />
+        <entry key="..\:/Users/SSO/AndroidStudioProjects/DutchGo/app/src/main/res/layout/activity_del_mem.xml" value="0.36186594202898553" />
+        <entry key="..\:/Users/SSO/AndroidStudioProjects/DutchGo/app/src/main/res/layout/activity_dutch_kind.xml" value="0.33" />
+        <entry key="..\:/Users/SSO/AndroidStudioProjects/DutchGo/app/src/main/res/layout/activity_input_member.xml" value="0.33" />
+        <entry key="..\:/Users/SSO/AndroidStudioProjects/DutchGo/app/src/main/res/layout/activity_input_pay_info.xml" value="0.33" />
+        <entry key="..\:/Users/SSO/AndroidStudioProjects/DutchGo/app/src/main/res/layout/activity_main.xml" value="0.33" />
+      </map>
+    </option>
+  </component>
+  <component name="ExternalStorageConfigurationManager" enabled="true" />
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_11" default="true" project-jdk-name="11" project-jdk-type="JavaSDK" />
+</project>

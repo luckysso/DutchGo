@@ -1,0 +1,28 @@
+<resources>
+    <string name="app_name">DutchGo</string>
+    <string name="간편정산">간편정산</string>
+    <string name="개별정산">개별정산</string>
+    <string name="plus">+</string>
+    <string name="minus">—</string>
+    <string name="취소">취소</string>
+    <string name="확인">확인</string>
+    <string name="멤버">멤버</string>
+    <string name="지출내역">지출내역</string>
+    <string name="정산내역">정산내역</string>
+    <string name="멤버입력설명">스페이스로 구분 입력</string>
+    <string name="멤버입력제목">멤버를 입력하세요</string>
+    <string name="참석인원선택제목">참석인원을 선택하세요</string>
+    <string name="결제인원선택제목">결제인원을 선택하세요</string>
+    <string name="멤버삭제제목">삭제할 멤버를 선택하세요</string>
+    <string name="결제날짜입력제목">결제날짜를 선택하세요</string>
+    <string name="결제내역종류입력제목">결제내역종류를 입력하세요</string>
+    <string name="결제내역종류예시">ex) 교통비</string>
+    <string name="결제내역추가설명">내역을 추가하세요</string>
+    <string name="결제금액예시">ex) 10000</string>
+    <string name="결제금액입력제목">결제금액을 입력하세요</string>
+    <string name="초기화">초기화</string>
+    <string name="달력이미지">결제날짜달력이미지</string>
+    <string name="날짜형식">yyyy/MM/dd</string>
+    <string name="영수증인식">영수증 인식</string>
+    <string name="그룹추가">그룹추가</string>
+</resources>

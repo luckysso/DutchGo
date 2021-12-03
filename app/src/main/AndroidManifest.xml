@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.dutchtech.dutchgo">
+
+    <application
+        android:allowBackup="true"
+        android:fullBackupContent="@xml/backup"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:hardwareAccelerated="true"
+        android:theme="@style/Theme.DutchGo">
+        <activity
+            android:name=".BasicCalActivity"
+            android:exported="false" />
+        <activity android:name=".DelMemActivity" />
+        <activity android:name=".DutchKindActivity" />
+        <activity android:name=".InputPayInfoActivity" />
+        <activity android:name=".InputMemberActivity" />
+        <activity
+            android:name=".MainActivity"
+            android:launchMode="singleTop"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER"  />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>
