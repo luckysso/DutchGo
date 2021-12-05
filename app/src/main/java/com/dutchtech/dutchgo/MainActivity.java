@@ -3,38 +3,45 @@ package com.dutchtech.dutchgo;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.text.InputType;
 import android.util.DisplayMetrics;
 import android.view.Gravity;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.appcompat.app.ActionBar;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.constraintlayout.widget.ConstraintSet;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 import com.dutchtech.dutchgo.databinding.ActivityMainBinding;
+import com.dutchtech.dutchgo.databinding.ActivityMainContentBinding;
+import com.dutchtech.dutchgo.databinding.AppBarMainBinding;
+import com.google.android.material.navigation.NavigationView;
+
 import java.io.Serializable;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public class MainActivity extends AppCompatActivity{
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
-    private ActivityMainBinding binding;
-    private static MainActivity context;
+    private ActivityMainContentBinding mainContentBinding;
+    private static DrawerLayout drawerLayout;
+    private static ActionBarDrawerToggle drawerToggle;
     private static double density = 0;
-    private static final DutchPayGroups dutchPayGroups=DutchPayGroups.getInstance();
+    private static final DutchPayGroups dutchPayGroups = DutchPayGroups.getInstance();
     private static DutchPayGroup currentDutchPayGroup;
-
-    public static MainActivity getContext() {
-        return context;
-    }
 
     public static int convertDPtoPX(int dp) {
         return (int) (dp * density + 0.5);
@@ -47,23 +54,31 @@ public class MainActivity extends AppCompatActivity{
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        context=this;
-        binding = ActivityMainBinding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot());
-
+        ActivityMainBinding mainBinding = ActivityMainBinding.inflate(getLayoutInflater());
+        mainContentBinding = ActivityMainContentBinding.inflate(getLayoutInflater());
+        AppBarMainBinding appBarMainBinding=AppBarMainBinding.inflate(getLayoutInflater());
+        setContentView(mainBinding.getRoot());
         DisplayMetrics metrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(metrics);
         density = metrics.density;
 
-        setSupportActionBar(binding.toolbar);
-        ActionBar actionBar = getSupportActionBar();
-        assert actionBar != null;
-        actionBar.setDisplayHomeAsUpEnabled(true);
-        actionBar.setHomeAsUpIndicator(R.drawable.nav_button);
+        setSupportActionBar(appBarMainBinding.toolbar);
 
+        drawerLayout = mainBinding.dlMainDrawerRoot;
+        NavigationView navigationView = mainBinding.nvMainNavigationRoot;
+        drawerToggle = new ActionBarDrawerToggle(
+                this,
+                drawerLayout,
+                appBarMainBinding.toolbar,
+                R.string.drawer_open,
+                R.string.drawer_close
+        );
+        drawerLayout.addDrawerListener(drawerToggle);
+        navigationView.setNavigationItemSelectedListener(this);
+        drawerToggle.syncState();
         addDutchPayGroup("모임1");
 
-        binding.addGroup.setOnClickListener(v->{
+        mainContentBinding.addGroup.setOnClickListener(v -> {
 
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle("그룹 추가");
@@ -93,22 +108,22 @@ public class MainActivity extends AppCompatActivity{
             msgDlg.show();
         });
 
-        binding.addMem.setOnClickListener(v ->
+        mainContentBinding.addMem.setOnClickListener(v ->
         {
             Intent intent = new Intent(getApplicationContext(), InputMemberActivity.class);
             inputMemForResult.launch(intent);
         });
 
-        binding.reset.setOnClickListener(v -> {
+        mainContentBinding.reset.setOnClickListener(v -> {
             currentDutchPayGroup.clearMembers();
-            binding.memText.setText("");
+            mainContentBinding.memText.setText("");
             currentDutchPayGroup.clearPayHistories();
-            ((ViewGroup)binding.payHistoryBox.getParent()).removeAllViews();
-            binding.settlement.setText("");
-            binding.settlementInfo.setText("");
+            ((ViewGroup) mainContentBinding.payHistoryBox.getParent()).removeAllViews();
+            mainContentBinding.settlement.setText("");
+            mainContentBinding.settlementInfo.setText("");
         });
 
-        binding.delMem.setOnClickListener(v ->
+        mainContentBinding.delMem.setOnClickListener(v ->
         {
             if (currentDutchPayGroup.isEmptyMembers()) {
                 Toast.makeText(getApplicationContext(), "삭제할 멤버가 없습니다", Toast.LENGTH_LONG).show();
@@ -119,7 +134,7 @@ public class MainActivity extends AppCompatActivity{
             }
         });
 
-        binding.addHistory.setOnClickListener(v ->
+        mainContentBinding.addHistory.setOnClickListener(v ->
         {
             if (currentDutchPayGroup.isEmptyMembers()) {
                 Toast.makeText(getApplicationContext(), "멤버를 입력해야 합니다", Toast.LENGTH_LONG).show();
@@ -132,6 +147,41 @@ public class MainActivity extends AppCompatActivity{
 
     }
 
+    @Override
+    public boolean onNavigationItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        return true;
+    }
+
+    @Override
+    protected void onPostCreate(Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+        drawerToggle.syncState();
+    }
+
+    @Override
+    public void onConfigurationChanged(@NonNull Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        drawerToggle.onConfigurationChanged(newConfig);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (drawerToggle.onOptionsItemSelected(item)) {
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            drawerLayout.closeDrawer(GravityCompat.START);
+        } else {
+            super.onBackPressed();
+        }
+    }
+
 
     @Override
     protected void onNewIntent(Intent intent) {
@@ -140,29 +190,31 @@ public class MainActivity extends AppCompatActivity{
         if (className != null) {
             if (className.equals("InputPayInfo")) {
                 PayHistory payHistory = (PayHistory) intent.getSerializableExtra("payHistory");
+                assert payHistory != null;
                 currentDutchPayGroup.addPayHistory(payHistory);
-
+                loadPayHistory(payHistory);
+                removePayHistoryExplainBox();
                 refreshDutchPayText();
             }
         }
     }
 
-    private void addDutchPayGroup(String groupName){
+    private void addDutchPayGroup(String groupName) {
         dutchPayGroups.addDutchPayGroup(groupName);
         addGroup(groupName);
         setCurrentDutchPayGroup(dutchPayGroups.getDutchPayGroup(groupName));
     }
 
-    private void addGroup(String groupName){
-        GroupOnclickListener groupOnclickListener=GroupOnclickListener.getInstance();
+    private void addGroup(String groupName) {
+        GroupOnclickListener groupOnclickListener = GroupOnclickListener.getInstance();
         TextView groupNameView = new TextView(this);
         groupNameView.setText(groupName);
         groupNameView.setTag(groupName);
         groupNameView.setOnClickListener(groupOnclickListener);
-        binding.groupName.addView(groupNameView);
+        mainContentBinding.groupName.addView(groupNameView);
     }
 
-    private void loadPayHistory(PayHistory payHistory){
+    private void loadPayHistory(PayHistory payHistory) {
         Set<String> attendees = payHistory.getAttendees();
         String payKind = payHistory.getPayKind();
         int price = payHistory.getCost();
@@ -213,32 +265,36 @@ public class MainActivity extends AppCompatActivity{
         set.connect(deleteBtnView.getId(), ConstraintSet.END, payHistoryView.getId(), ConstraintSet.END);
         set.applyTo(payHistorylayout);
 
-        binding.payHistoryBox.addView(payHistorylayout);
+        mainContentBinding.payHistoryBox.addView(payHistorylayout);
 
         deleteBtnView.setOnClickListener(v -> {
             currentDutchPayGroup.removePayHistory(payHistory);
-            binding.payHistoryBox.removeView(payHistorylayout);
-            if (binding.payHistoryBox.getChildCount() == 0) {
+            mainContentBinding.payHistoryBox.removeView(payHistorylayout);
+            if (mainContentBinding.payHistoryBox.getChildCount() == 0) {
                 TextView view = getPayHistoryExplainBox();
-                binding.payHistoryBox.addView(view);
+                mainContentBinding.payHistoryBox.addView(view);
             }
             refreshDutchPayText();
         });
     }
 
 
-    public void loadCurrentDutchPayGroup(){
+    public void loadCurrentDutchPayGroup() {
         printMember();
-        Set<PayHistory> payHistories=currentDutchPayGroup.getPayHistories();
-        for(PayHistory payHistory:payHistories){
+        Set<PayHistory> payHistories = currentDutchPayGroup.getPayHistories();
+        for (PayHistory payHistory : payHistories) {
             loadPayHistory(payHistory);
         }
-        TextView payHistoryExplain = binding.payHistoryBox.findViewWithTag("payHistoryExplain");
+        removePayHistoryExplainBox();
+        mainContentBinding.settlementInfo.setText(currentDutchPayGroup.getPayHistoryText());
+        mainContentBinding.settlement.setText(currentDutchPayGroup.getSettlementHistoryText());
+    }
+
+    private void removePayHistoryExplainBox() {
+        TextView payHistoryExplain = mainContentBinding.payHistoryBox.findViewWithTag("payHistoryExplain");
         if (payHistoryExplain != null) {
-            binding.payHistoryBox.removeView(payHistoryExplain);
+            mainContentBinding.payHistoryBox.removeView(payHistoryExplain);
         }
-        binding.settlementInfo.setText(currentDutchPayGroup.getPayHistoryText());
-        binding.settlement.setText(currentDutchPayGroup.getSettlementHistoryText());
     }
 
     private TextView getPayHistoryExplainBox() {
@@ -255,12 +311,12 @@ public class MainActivity extends AppCompatActivity{
     private void refreshDutchPayText() {
         currentDutchPayGroup.setSettlementHistory();
         currentDutchPayGroup.setCostToSendOrReceiveByAttendee();
-        binding.settlementInfo.setText(currentDutchPayGroup.getPayHistoryText());
-        binding.settlement.setText(currentDutchPayGroup.getSettlementHistoryText());
+        mainContentBinding.settlementInfo.setText(currentDutchPayGroup.getPayHistoryText());
+        mainContentBinding.settlement.setText(currentDutchPayGroup.getSettlementHistoryText());
     }
 
     private void printMember() {
-        binding.memText.setText(currentDutchPayGroup.getMembersText());
+        mainContentBinding.memText.setText(currentDutchPayGroup.getMembersText());
     }
 
     ActivityResultLauncher<Intent> inputMemForResult = registerForActivityResult(
@@ -273,7 +329,9 @@ public class MainActivity extends AppCompatActivity{
 
                     LinkedHashSet<String> memberToInput = new LinkedHashSet<>();
                     LinkedHashSet<String> memberOverlap = new LinkedHashSet<>();
-                    String[] MemberToInputText = ((String) data.getSerializableExtra("memberToInput")).trim().replaceAll(" +"," ").split(" ");
+                    String members = (String)data.getSerializableExtra("memberToInput");
+                    assert members != null;
+                    String[] MemberToInputText = members.trim().replaceAll(" +", " ").split(" ");
                     for (String str : MemberToInputText) {
                         if (memberToInput.contains(str)) {
                             memberOverlap.add(str);
@@ -314,8 +372,9 @@ public class MainActivity extends AppCompatActivity{
                     assert data != null;
                     boolean isPayerOrAttendee;
 
-                    Set<PayHistory> payHistories=currentDutchPayGroup.getPayHistories();
+                    Set<PayHistory> payHistories = currentDutchPayGroup.getPayHistories();
                     LinkedHashSet<String> memberToDelete = (LinkedHashSet<String>) data.getSerializableExtra("memberToDelete");
+                    assert memberToDelete != null;
                     for (String member : memberToDelete) {
                         currentDutchPayGroup.removeMember(member);
 
@@ -333,14 +392,14 @@ public class MainActivity extends AppCompatActivity{
                             }
                             if (isPayerOrAttendee) {
                                 currentDutchPayGroup.removePayHistory(payHistory);
-                                ConstraintLayout layout= binding.payHistoryBox.findViewWithTag(payHistory);
-                                ((ViewGroup)layout.getParent()).removeView(layout);
+                                ConstraintLayout layout = mainContentBinding.payHistoryBox.findViewWithTag(payHistory);
+                                ((ViewGroup) layout.getParent()).removeView(layout);
                             }
                         }
                     }
-                    if(currentDutchPayGroup.isEmptyPayHistories()){
+                    if (currentDutchPayGroup.isEmptyPayHistories()) {
                         TextView view = getPayHistoryExplainBox();
-                        binding.payHistoryBox.addView(view);
+                        mainContentBinding.payHistoryBox.addView(view);
                     }
                     printMember();
                     refreshDutchPayText();

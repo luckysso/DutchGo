@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.dutchtech.dutchgo.databinding.ActivityDelMemBinding;
 
 import java.util.LinkedHashSet;
+import java.util.Set;
 
 public class DelMemActivity extends AppCompatActivity {
 
@@ -26,9 +27,10 @@ public class DelMemActivity extends AppCompatActivity {
 
         Intent intent = getIntent();
 
-        LinkedHashSet<String> members = (LinkedHashSet<String>) intent.getSerializableExtra("members");
+        Set<String> members = (Set<String>) intent.getSerializableExtra("members");
 
-        OutputView.printMemByChecked(this, binding.cbLayout, members,CheckBox.class);
+        assert members != null;
+        OutputView.printMemByAttendee(this, binding.cbLayout, members);
 
         LinkedHashSet<String> memberToDelete = new LinkedHashSet<>();
 

@@ -25,4 +25,6 @@
     <string name="날짜형식">yyyy/MM/dd</string>
     <string name="영수증인식">영수증 인식</string>
     <string name="그룹추가">그룹추가</string>
+    <string name="drawer_open">사이드 메뉴 열기</string>
+    <string name="drawer_close">사이드 메뉴 닫기</string>
 </resources>
