@@ -29,7 +29,6 @@ public class DelMemActivity extends AppCompatActivity {
 
         Set<String> members = (Set<String>) intent.getSerializableExtra("members");
 
-        assert members != null;
         OutputView.printMemByAttendee(this, binding.cbLayout, members);
 
         LinkedHashSet<String> memberToDelete = new LinkedHashSet<>();

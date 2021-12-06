@@ -28,6 +28,7 @@ public class SettlementHistory {
                 }
             }
         }
+
     }
 
     public void setCostByPayer(Set<String> members,Set<PayHistory> payHistories) {

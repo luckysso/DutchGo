@@ -3,7 +3,6 @@ package com.dutchtech.dutchgo;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
-import android.content.res.Configuration;
 import android.os.Bundle;
 import android.text.InputType;
 import android.util.DisplayMetrics;
@@ -18,13 +17,13 @@ import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.constraintlayout.widget.ConstraintSet;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+
 import com.dutchtech.dutchgo.databinding.ActivityMainBinding;
 import com.dutchtech.dutchgo.databinding.ActivityMainContentBinding;
 import com.dutchtech.dutchgo.databinding.AppBarMainBinding;
@@ -32,10 +31,12 @@ import com.google.android.material.navigation.NavigationView;
 
 import java.io.Serializable;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
+    private ActivityMainBinding mainBinding;
     private ActivityMainContentBinding mainContentBinding;
     private static DrawerLayout drawerLayout;
     private static ActionBarDrawerToggle drawerToggle;
@@ -47,16 +48,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         return (int) (dp * density + 0.5);
     }
 
-    public static void setCurrentDutchPayGroup(DutchPayGroup dutchPayGroup) {
-        currentDutchPayGroup = dutchPayGroup;
-    }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        ActivityMainBinding mainBinding = ActivityMainBinding.inflate(getLayoutInflater());
-        mainContentBinding = ActivityMainContentBinding.inflate(getLayoutInflater());
-        AppBarMainBinding appBarMainBinding=AppBarMainBinding.inflate(getLayoutInflater());
+        mainBinding= ActivityMainBinding.inflate(getLayoutInflater());
+        mainContentBinding = mainBinding.mainContent;
+
+        AppBarMainBinding appBarMainBinding=mainContentBinding.appBarMain;
         setContentView(mainBinding.getRoot());
         DisplayMetrics metrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(metrics);
@@ -77,8 +75,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         navigationView.setNavigationItemSelectedListener(this);
         drawerToggle.syncState();
         addDutchPayGroup("모임1");
+        currentDutchPayGroup=dutchPayGroups.getDutchPayGroup("모임1");
 
-        mainContentBinding.addGroup.setOnClickListener(v -> {
+        navigationView.getHeaderView(0).findViewWithTag("addGroup").setOnClickListener(v -> {
 
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle("그룹 추가");
@@ -149,29 +148,34 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
-        int id = item.getItemId();
+        String title = (String)item.getTitle();
+        Map<String,DutchPayGroup> map=dutchPayGroups.getDutchPayGroups();
+        for(Map.Entry<String,DutchPayGroup> entry:map.entrySet()){
+
+        }
         return true;
     }
 
-    @Override
-    protected void onPostCreate(Bundle savedInstanceState) {
-        super.onPostCreate(savedInstanceState);
-        drawerToggle.syncState();
-    }
+//    @Override
+//    protected void onPostCreate(Bundle savedInstanceState) {
+//        super.onPostCreate(savedInstanceState);
+//        drawerToggle.syncState();
+//    }
+//
+//    @Override
+//    public void onConfigurationChanged(@NonNull Configuration newConfig) {
+//        super.onConfigurationChanged(newConfig);
+//        drawerToggle.onConfigurationChanged(newConfig);
+//    }
 
-    @Override
-    public void onConfigurationChanged(@NonNull Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-        drawerToggle.onConfigurationChanged(newConfig);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        if (drawerToggle.onOptionsItemSelected(item)) {
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
+//    @Override
+//    public boolean onOptionsItemSelected(MenuItem item) {
+//        if (drawerToggle.onOptionsItemSelected(item)) {
+//
+//            return true;
+//        }
+//        return super.onOptionsItemSelected(item);
+//    }
 
     @Override
     public void onBackPressed() {
@@ -190,7 +194,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if (className != null) {
             if (className.equals("InputPayInfo")) {
                 PayHistory payHistory = (PayHistory) intent.getSerializableExtra("payHistory");
-                assert payHistory != null;
                 currentDutchPayGroup.addPayHistory(payHistory);
                 loadPayHistory(payHistory);
                 removePayHistoryExplainBox();
@@ -201,17 +204,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private void addDutchPayGroup(String groupName) {
         dutchPayGroups.addDutchPayGroup(groupName);
-        addGroup(groupName);
-        setCurrentDutchPayGroup(dutchPayGroups.getDutchPayGroup(groupName));
-    }
-
-    private void addGroup(String groupName) {
-        GroupOnclickListener groupOnclickListener = GroupOnclickListener.getInstance();
-        TextView groupNameView = new TextView(this);
-        groupNameView.setText(groupName);
-        groupNameView.setTag(groupName);
-        groupNameView.setOnClickListener(groupOnclickListener);
-        mainContentBinding.groupName.addView(groupNameView);
+        Map<String,DutchPayGroup> dutchPayGroup=dutchPayGroups.getDutchPayGroups();
+        mainBinding.nvMainNavigationRoot.getMenu().add(groupName).setOnMenuItemClickListener(item->{
+            if(dutchPayGroups.getDutchPayGroups().containsKey(groupName)) {
+                currentDutchPayGroup=dutchPayGroup.get(groupName);
+                loadCurrentDutchPayGroup();
+            }
+            return false;
+        });
     }
 
     private void loadPayHistory(PayHistory payHistory) {
@@ -316,7 +316,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     private void printMember() {
-        mainContentBinding.memText.setText(currentDutchPayGroup.getMembersText());
+        mainContentBinding.memText.setText(currentDutchPayGroup.getMembersText().toString());
     }
 
     ActivityResultLauncher<Intent> inputMemForResult = registerForActivityResult(
@@ -329,9 +329,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
                     LinkedHashSet<String> memberToInput = new LinkedHashSet<>();
                     LinkedHashSet<String> memberOverlap = new LinkedHashSet<>();
-                    String members = (String)data.getSerializableExtra("memberToInput");
-                    assert members != null;
-                    String[] MemberToInputText = members.trim().replaceAll(" +", " ").split(" ");
+                    String[] MemberToInputText = ((String) data.getSerializableExtra("memberToInput")).trim().replaceAll(" +", " ").split(" ");
                     for (String str : MemberToInputText) {
                         if (memberToInput.contains(str)) {
                             memberOverlap.add(str);
@@ -374,7 +372,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
                     Set<PayHistory> payHistories = currentDutchPayGroup.getPayHistories();
                     LinkedHashSet<String> memberToDelete = (LinkedHashSet<String>) data.getSerializableExtra("memberToDelete");
-                    assert memberToDelete != null;
                     for (String member : memberToDelete) {
                         currentDutchPayGroup.removeMember(member);
 

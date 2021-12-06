@@ -13,11 +13,16 @@
         android:theme="@style/Theme.DutchGo">
         <activity
             android:name=".BasicCalActivity"
+            android:theme="@style/Theme.DutchGo.NoActionBar"
             android:exported="false" />
-        <activity android:name=".DelMemActivity" />
-        <activity android:name=".DutchKindActivity" />
-        <activity android:name=".InputPayInfoActivity" />
-        <activity android:name=".InputMemberActivity" />
+        <activity android:name=".DelMemActivity"
+            android:theme="@style/Theme.DutchGo.NoActionBar"/>
+        <activity android:name=".DutchKindActivity"
+            android:theme="@style/Theme.DutchGo.NoActionBar"/>
+        <activity android:name=".InputPayInfoActivity"
+            android:theme="@style/Theme.DutchGo.NoActionBar"/>
+        <activity android:name=".InputMemberActivity"
+            android:theme="@style/Theme.DutchGo.NoActionBar"/>
         <activity
             android:name=".MainActivity"
             android:launchMode="singleTop"

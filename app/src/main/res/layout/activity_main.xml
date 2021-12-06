@@ -6,13 +6,19 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
+    android:theme="@style/Theme.DutchGo.NoActionBar"
     tools:openDrawer="start">
 
-    <include
-        android:id="@+id/main_content"
-        layout="@layout/activity_main_content"
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent">
+
+        <include
+            android:id="@+id/main_content"
+            layout="@layout/activity_main_content"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <com.google.android.material.navigation.NavigationView
         android:id="@+id/nv_main_navigation_root"
@@ -20,7 +26,7 @@
         android:layout_height="match_parent"
         android:layout_gravity="start"
         android:fitsSystemWindows="true"
-        app:menu="@menu/drawer"
-        app:headerLayout="@layout/nav_header_main"/>
+        app:headerLayout="@layout/nav_header_main"
+        app:menu="@menu/drawer" />
 
 </androidx.drawerlayout.widget.DrawerLayout>

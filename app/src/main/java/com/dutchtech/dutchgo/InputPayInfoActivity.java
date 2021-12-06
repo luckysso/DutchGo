@@ -35,7 +35,6 @@ public class InputPayInfoActivity extends AppCompatActivity {
         {
             Intent intent = getIntent();
             Set<String> members = (Set<String>) intent.getSerializableExtra("members");
-            assert members != null;
             OutputView.printMemByAttendee(this, binding.attendeeCbLayout, members);
             binding.payerCbLayout.setPadding(50, 0, 50, 0);
             ArrayList<String> memberArr = new ArrayList<>(members);
