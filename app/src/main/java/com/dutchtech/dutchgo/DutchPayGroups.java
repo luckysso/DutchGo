@@ -30,8 +30,12 @@ public class DutchPayGroups {
     }
 
     public void addDutchPayGroup(String groupName){
-        DutchPayGroup dutchPayGroup=new DutchPayGroup();
+        DutchPayGroup dutchPayGroup=new DutchPayGroup(groupName);
         dutchPayGroups.put(groupName,dutchPayGroup);
+    }
+
+    public void removeDutchPayGroup(String groupName){
+        dutchPayGroups.remove(groupName);
     }
 
     public boolean isContainGroup(String groupName){

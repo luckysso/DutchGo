@@ -3,7 +3,9 @@ package com.dutchtech.dutchgo;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
+
 import com.dutchtech.dutchgo.databinding.ActivityInputMemberBinding;
 
 public class InputMemberActivity extends AppCompatActivity {

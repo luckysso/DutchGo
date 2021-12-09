@@ -9,6 +9,19 @@ public class DutchPayGroup {
     private final LinkedHashSet<String> members = new LinkedHashSet<>();
     private final PayHistories payHistories = new PayHistories();
     private final SettlementHistory settlementHistory=new SettlementHistory();
+    private String groupName;
+
+    public DutchPayGroup(String groupName){
+        this.groupName=groupName;
+    }
+
+    public void modifyGroupName(String groupName){
+        this.groupName=groupName;
+    }
+
+    public String getGroupName(){
+        return groupName;
+    }
 
     public Set<String> getMembers() {
         return java.util.Collections.unmodifiableSet(members);
@@ -58,7 +71,7 @@ public class DutchPayGroup {
         return payHistories.getPayHistoryText();
     }
 
-    public StringBuilder getMembersText() {
+    public String getMembersText() {
         StringBuilder memberText = new StringBuilder();
         String prefix = "";
         for (String str : members) {
@@ -66,7 +79,10 @@ public class DutchPayGroup {
             prefix = ", ";
             memberText.append(str);
         }
-        return memberText;
+        if(memberText.length()==0){
+            return "";
+        }
+        return memberText.toString();
     }
 
     public void setSettlementHistory(){

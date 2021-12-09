@@ -12,6 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -31,18 +32,20 @@ import com.google.android.material.navigation.NavigationView;
 
 import java.io.Serializable;
 import java.util.LinkedHashSet;
-import java.util.Map;
 import java.util.Set;
 
-public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
+public class MainActivity extends AppCompatActivity {
 
     private ActivityMainBinding mainBinding;
     private ActivityMainContentBinding mainContentBinding;
+    private LinearLayout payHistoryBoxLayout;
+    private static NavigationView navigationView;
     private static DrawerLayout drawerLayout;
-    private static ActionBarDrawerToggle drawerToggle;
     private static double density = 0;
     private static final DutchPayGroups dutchPayGroups = DutchPayGroups.getInstance();
     private static DutchPayGroup currentDutchPayGroup;
+    private static MenuItem currentMenuItem;
+    private final String PAY_HISTORY_EXPLAIN="payHistoryExplain";
 
     public static int convertDPtoPX(int dp) {
         return (int) (dp * density + 0.5);
@@ -51,10 +54,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mainBinding= ActivityMainBinding.inflate(getLayoutInflater());
+        mainBinding = ActivityMainBinding.inflate(getLayoutInflater());
         mainContentBinding = mainBinding.mainContent;
 
-        AppBarMainBinding appBarMainBinding=mainContentBinding.appBarMain;
+        payHistoryBoxLayout=mainContentBinding.payHistoryBox;
+        AppBarMainBinding appBarMainBinding = mainContentBinding.appBarMain;
+
         setContentView(mainBinding.getRoot());
         DisplayMetrics metrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(metrics);
@@ -63,8 +68,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         setSupportActionBar(appBarMainBinding.toolbar);
 
         drawerLayout = mainBinding.dlMainDrawerRoot;
-        NavigationView navigationView = mainBinding.nvMainNavigationRoot;
-        drawerToggle = new ActionBarDrawerToggle(
+        navigationView = mainBinding.nvMainNavigationRoot;
+        View navigationHeaderView = navigationView.getHeaderView(0);
+        ActionBarDrawerToggle drawerToggle = new ActionBarDrawerToggle(
                 this,
                 drawerLayout,
                 appBarMainBinding.toolbar,
@@ -72,12 +78,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 R.string.drawer_close
         );
         drawerLayout.addDrawerListener(drawerToggle);
-        navigationView.setNavigationItemSelectedListener(this);
-        drawerToggle.syncState();
-        addDutchPayGroup("모임1");
-        currentDutchPayGroup=dutchPayGroups.getDutchPayGroup("모임1");
 
-        navigationView.getHeaderView(0).findViewWithTag("addGroup").setOnClickListener(v -> {
+        drawerToggle.syncState();
+
+        addDutchPayGroup("모임1");
+
+        navigationHeaderView.findViewWithTag("addGroup").setOnClickListener(v -> {
 
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle("그룹 추가");
@@ -96,8 +102,30 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 } else {
                     addDutchPayGroup(inputText);
                     loadCurrentDutchPayGroup();
-
                 }
+            });
+
+            builder.setNegativeButton("취소", (dialogInterface, id) ->
+                    dialogInterface.cancel());
+
+            AlertDialog msgDlg = builder.create();
+            msgDlg.show();
+        });
+
+        navigationHeaderView.findViewWithTag("deleteGroup").setOnClickListener(v -> {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("그룹 삭제");
+            builder.setMessage(currentMenuItem.getTitle().toString().substring(1) + " 그룹을 정말 삭제하시겠습니까?");
+
+            builder.setPositiveButton("확인", (dialogInterface, id) ->
+            {
+                dutchPayGroups.removeDutchPayGroup(currentMenuItem.getTitle().toString().substring(1));
+                navigationView.getMenu().removeItem(currentMenuItem.getItemId());
+                currentMenuItem = navigationView.getMenu().getItem(0);
+                CharSequence title = currentMenuItem.getTitle();
+                currentMenuItem.setTitle("●" + title);
+                currentDutchPayGroup = dutchPayGroups.getDutchPayGroup(title.toString());
+                loadCurrentDutchPayGroup();
             });
 
             builder.setNegativeButton("취소", (dialogInterface, id) ->
@@ -117,7 +145,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             currentDutchPayGroup.clearMembers();
             mainContentBinding.memText.setText("");
             currentDutchPayGroup.clearPayHistories();
-            ((ViewGroup) mainContentBinding.payHistoryBox.getParent()).removeAllViews();
+            payHistoryBoxLayout.removeAllViews();
+            addPayHistoryExplainBoxIfEmpty(payHistoryBoxLayout);
             mainContentBinding.settlement.setText("");
             mainContentBinding.settlementInfo.setText("");
         });
@@ -146,15 +175,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     }
 
-    @Override
-    public boolean onNavigationItemSelected(MenuItem item) {
-        String title = (String)item.getTitle();
-        Map<String,DutchPayGroup> map=dutchPayGroups.getDutchPayGroups();
-        for(Map.Entry<String,DutchPayGroup> entry:map.entrySet()){
-
-        }
-        return true;
-    }
 
 //    @Override
 //    protected void onPostCreate(Bundle savedInstanceState) {
@@ -196,7 +216,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 PayHistory payHistory = (PayHistory) intent.getSerializableExtra("payHistory");
                 currentDutchPayGroup.addPayHistory(payHistory);
                 loadPayHistory(payHistory);
-                removePayHistoryExplainBox();
+                removePayHistoryExplainBox(payHistoryBoxLayout,navigationView.findViewWithTag(PAY_HISTORY_EXPLAIN));
                 refreshDutchPayText();
             }
         }
@@ -204,15 +224,29 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private void addDutchPayGroup(String groupName) {
         dutchPayGroups.addDutchPayGroup(groupName);
-        Map<String,DutchPayGroup> dutchPayGroup=dutchPayGroups.getDutchPayGroups();
-        mainBinding.nvMainNavigationRoot.getMenu().add(groupName).setOnMenuItemClickListener(item->{
-            if(dutchPayGroups.getDutchPayGroups().containsKey(groupName)) {
-                currentDutchPayGroup=dutchPayGroup.get(groupName);
+        String menuName = "●" + groupName;
+
+        MenuItem menuItem = navigationView.getMenu().add(0, View.generateViewId(), 0, menuName);
+
+        if (currentMenuItem != null) {
+            currentMenuItem.setTitle(currentDutchPayGroup.getGroupName());
+        }
+        currentMenuItem = menuItem;
+        currentDutchPayGroup = dutchPayGroups.getDutchPayGroup(groupName);
+        menuItem.setOnMenuItemClickListener(item -> {
+            String title = item.getTitle().toString();
+            if (!currentMenuItem.getTitle().toString().equals(title)) {
+                currentMenuItem.setTitle(currentDutchPayGroup.getGroupName());
+                currentDutchPayGroup = dutchPayGroups.getDutchPayGroup(title);
+                item.setTitle("●" + title);
+                currentMenuItem = item;
                 loadCurrentDutchPayGroup();
             }
+
             return false;
         });
     }
+
 
     private void loadPayHistory(PayHistory payHistory) {
         Set<String> attendees = payHistory.getAttendees();
@@ -265,19 +299,22 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         set.connect(deleteBtnView.getId(), ConstraintSet.END, payHistoryView.getId(), ConstraintSet.END);
         set.applyTo(payHistorylayout);
 
-        mainContentBinding.payHistoryBox.addView(payHistorylayout);
+        payHistoryBoxLayout.addView(payHistorylayout);
 
         deleteBtnView.setOnClickListener(v -> {
             currentDutchPayGroup.removePayHistory(payHistory);
-            mainContentBinding.payHistoryBox.removeView(payHistorylayout);
-            if (mainContentBinding.payHistoryBox.getChildCount() == 0) {
-                TextView view = getPayHistoryExplainBox();
-                mainContentBinding.payHistoryBox.addView(view);
-            }
+            payHistoryBoxLayout.removeView(payHistorylayout);
+            addPayHistoryExplainBoxIfEmpty(payHistoryBoxLayout);
             refreshDutchPayText();
         });
     }
 
+    private void addPayHistoryExplainBoxIfEmpty(ViewGroup payHistoryBoxLayout) {
+        if (payHistoryBoxLayout.findViewWithTag(PAY_HISTORY_EXPLAIN) ==null) {
+            TextView view = getPayHistoryExplainBox();
+            payHistoryBoxLayout.addView(view);
+        }
+    }
 
     public void loadCurrentDutchPayGroup() {
         printMember();
@@ -285,21 +322,25 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         for (PayHistory payHistory : payHistories) {
             loadPayHistory(payHistory);
         }
-        removePayHistoryExplainBox();
+        addPayHistoryExplainBoxIfEmpty(payHistoryBoxLayout);
+
         mainContentBinding.settlementInfo.setText(currentDutchPayGroup.getPayHistoryText());
-        mainContentBinding.settlement.setText(currentDutchPayGroup.getSettlementHistoryText());
+        String settlementText="";
+        if(!payHistories.isEmpty()){
+            settlementText=currentDutchPayGroup.getSettlementHistoryText().toString();
+        }
+        mainContentBinding.settlement.setText(settlementText);
     }
 
-    private void removePayHistoryExplainBox() {
-        TextView payHistoryExplain = mainContentBinding.payHistoryBox.findViewWithTag("payHistoryExplain");
-        if (payHistoryExplain != null) {
-            mainContentBinding.payHistoryBox.removeView(payHistoryExplain);
+    private void removePayHistoryExplainBox(ViewGroup payHistoryBoxLayout,TextView viewToRemove) {
+        if (viewToRemove != null) {
+            payHistoryBoxLayout.removeView(viewToRemove);
         }
     }
 
     private TextView getPayHistoryExplainBox() {
         TextView payHistoryExplain = new TextView(this);
-        payHistoryExplain.setTag("payHistoryExplain");
+        payHistoryExplain.setTag(PAY_HISTORY_EXPLAIN);
         payHistoryExplain.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                 convertDPtoPX(48)));
         payHistoryExplain.setTextSize(18);
@@ -316,7 +357,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     private void printMember() {
-        mainContentBinding.memText.setText(currentDutchPayGroup.getMembersText().toString());
+        mainContentBinding.memText.setText(currentDutchPayGroup.getMembersText());
     }
 
     ActivityResultLauncher<Intent> inputMemForResult = registerForActivityResult(
@@ -389,14 +430,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             }
                             if (isPayerOrAttendee) {
                                 currentDutchPayGroup.removePayHistory(payHistory);
-                                ConstraintLayout layout = mainContentBinding.payHistoryBox.findViewWithTag(payHistory);
+                                ConstraintLayout layout = payHistoryBoxLayout.findViewWithTag(payHistory);
                                 ((ViewGroup) layout.getParent()).removeView(layout);
                             }
                         }
                     }
                     if (currentDutchPayGroup.isEmptyPayHistories()) {
                         TextView view = getPayHistoryExplainBox();
-                        mainContentBinding.payHistoryBox.addView(view);
+                        payHistoryBoxLayout.addView(view);
                     }
                     printMember();
                     refreshDutchPayText();
